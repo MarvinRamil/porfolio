@@ -13,6 +13,10 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Set environment variables for build (with defaults)
+ENV NEXT_PUBLIC_SUPABASE_URL=""
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=""
+
 # Build the application
 RUN npm run build
 
@@ -32,6 +36,7 @@ RUN npm ci --only=production && npm cache clean --force
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/out ./out
+COPY --from=builder /app/package*.json ./
 
 # Expose port 3000
 EXPOSE 3000
