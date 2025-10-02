@@ -1,42 +1,28 @@
 # Build stage
 FROM node:18-alpine AS builder
-
-# Set working directory
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
-
-# Install all dependencies (including dev dependencies for build)
 RUN npm ci
 
-# Copy source code
 COPY . .
-
-
-# Build the application
 RUN npm run build
 
 # Production stage
 FROM node:18-alpine AS runner
-
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+ENV NODE_ENV=production
 
-# Install only production dependencies
+COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
-# Copy built application from builder stage
+# Copy build output
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/out ./out
 COPY --from=builder /app/package*.json ./
 
-# Expose port 3000
-EXPOSE 3000
+# Optional: only if you have a public folder
+# COPY --from=builder /app/public ./public
 
-# Start the application
+EXPOSE 3000
 CMD ["npm", "start", "--", "-H", "0.0.0.0"]
